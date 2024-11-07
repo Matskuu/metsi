@@ -39,8 +39,6 @@ class VMI12StandIndices:
     naturaaluekoodi = 141
     ahvenanmaan_markkinahakkuualue = 149
     kehitysluokka = 201
-    vallitsevanjakson_d13ika = slice(247,250)
-    vallitsevanjakson_ikalisays = slice(250,252)
     hakkuu_tapa = 262
     hakkuu_aika = 263
     maanmuokkaus = 268
@@ -69,7 +67,6 @@ class VMI12TreeIndices:
     height = slice(36, 40)
     living_branches_height = slice(58, 61)
     measured_height = slice(61, 64)
-    tuhon_ilmiasu = slice(82,84)
     d13_age = slice(91, 94)
     age_increase = slice(95, 97)
     total_age = slice(97, 100)
@@ -102,47 +99,44 @@ class VMI13StandIndices:
     section_x = 4
     test_area_number = 5
     stand_number = 6
-    lohkotarkenne = 7
     date = 9
     osuus9m = 14
     osuus4m = 15
-    county = 17
     forestry_centre = 18
-    municipality = 19
+    municipality = 17
     kitukunta = 20
     owner_group = 24
     lat = 26
     lon = 27
     height_above_sea_level = 30
     degree_days = 31
-    land_category = 40
-    land_category_detail = 41
-    fra_class = 46
-    paatyyppi = 52
-    kasvupaikkatunnus = 53
-    ojitus_tilanne = 57
-    ojitus_aika = 59
-    ojitus_tarve = 60
-    tax_class = 62
-    tax_class_reduction = 63
-    kehitysluokka = 70
-    pohjapintaala = 86
-    vallitsevanjaksonika = 95
-    hakkuu_tapa = 102
-    hakkuu_aika = 103
-    maanmuokkaus = 108
-    viljely = 110
-    viljely_aika = 111
-    muu_toimenpide = 113
-    muu_toimenpide_aika = 114
-    hakkuuehdotus = 115
-    puuntuotannon_rajoitus = 125
-    puuntuotannon_rajoitus_tarkenne = 126
-    suojametsakoodi = 127
-    muut_arvot = 128
-    naturaaluekoodi = 129
-    ahvenanmaan_markkinahakkuualue = 130
-    koealan_kasittelyluokka = 131
+    land_category = 42
+    land_category_detail = 43
+    fra_class = 48
+    paatyyppi = 54
+    kasvupaikkatunnus = 55
+    ojitus_tilanne = 59
+    ojitus_aika = 61
+    ojitus_tarve = 62
+    tax_class = 64
+    tax_class_reduction = 65
+    hakkuu_tapa = 104
+    hakkuu_aika = 105
+    maanmuokkaus = 110
+    viljely = 112
+    viljely_aika = 113
+    muu_toimenpide = 115
+    muu_toimenpide_aika = 116
+    hakkuuehdotus = 117
+    puuntuotannon_rajoitus = 127
+    puuntuotannon_rajoitus_tarkenne = 128
+    suojametsakoodi = 129
+    muut_arvot = 130
+    naturaaluekoodi = 131
+    ahvenanmaan_markkinahakkuualue = 132
+    koealan_kasittelyluokka = 133
+    kehitysluokka = 72
+    pohjapintaala = 88
 
 
 class VMI13TreeIndices:
@@ -156,15 +150,14 @@ class VMI13TreeIndices:
     tree_type = 12
     species = 13
     diameter = 14
-    tree_category = 16
-    latvuskerros = 17
-    height = 19
-    living_branches_height = 27
-    measured_height = 28
-    tuhon_ilmiasu = 38
-    d13_age = 47
-    age_increase = 49
-    total_age = 50
+    tree_category = 15
+    latvuskerros = 16
+    height = 18
+    living_branches_height = 26
+    measured_height = 27
+    d13_age = 46
+    age_increase = 48
+    total_age = 49
 
 
 class VMI13StratumIndices:
@@ -184,7 +177,7 @@ class VMI13StratumIndices:
     avg_height = 17
     d13_age = 19
     biological_age = 20
-    basal_area = 23
+    basal_area = 22
 
 
 vmi12_county_areas = [
@@ -193,6 +186,10 @@ vmi12_county_areas = [
     384.104671280277, 387.185442744553, 380.530710444382, 387.55872063968, 391.846213895394,
     455.901059564719, 773.027950310559, 451.83355704698, 791.65080, 10313.25275, 230.82912
 ]
+
+# Inventointialueiden koealojen pinta-alat(0=Ahve 1=V-Suomi 2=E-Suomi 3=Kai-PP 4=Lappi, 5=Y-Lappi)
+# tarkista Ahve ja Y-Lappi
+vmi13_county_areas = [343.0, 436.0, 343.0, 456.0, 784.0, 784.0]
 
 # scots pine, norway spruce, silver birch, downy birch, aspen, alder
 species_directly_mappable = ['1', '2', '3', '4', '5', '6']

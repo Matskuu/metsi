@@ -1,5 +1,3 @@
-from typing import Optional, Callable
-from enum import IntEnum
 from lukefi.metsi.data.enums.forest_centre import (
     ForestCentreSiteType,
     ForestCentreOwnerCategory,
@@ -48,9 +46,6 @@ _species_map = {
     ForestCentreSpecies.WYCH_ELM: TreeSpecies.WYCH_ELM,
     ForestCentreSpecies.UNKNOWN_CONIFEROUS: TreeSpecies.UNKNOWN_CONIFEROUS,
     ForestCentreSpecies.UNKNOWN_DECIDUOUS: TreeSpecies.UNKNOWN_DECIDUOUS,
-    ForestCentreSpecies.BIRCH: TreeSpecies.SILVER_BIRCH,
-    ForestCentreSpecies.ALDER: TreeSpecies.GREY_ALDER,
-    ForestCentreSpecies.MIXED: TreeSpecies.OTHER_DECIDUOUS
 }
 
 
@@ -115,7 +110,7 @@ _storey_map = {
     ForestCentreStratumStorey.REMOVAL: Storey.REMOVAL
 }
 
-def convert_drainage_category(code: str) -> DrainageCategory:
+def convert_drainage_category(code: str):
     value = ForestCentreDrainageCategory(code)
     return _drainage_category_map.get(value)
 
@@ -149,8 +144,3 @@ def convert_owner(owner_code: str) -> OwnerCategory:
 def convert_storey(storey_code: str) -> Storey:
     fc_storey = ForestCentreStratumStorey(storey_code)
     return _storey_map.get(fc_storey)
-
-
-def convert_to_internal(code: str, category: Callable) -> Optional[IntEnum]:
-    ''' Converts forest centre code into fdm internal value '''
-    return None if code is None else category(code)

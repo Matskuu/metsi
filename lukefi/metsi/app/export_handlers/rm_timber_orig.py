@@ -13,7 +13,7 @@ def scan_operation_type_for_event(year: int, cross_cut: list[CrossCutResult]) ->
         return 'unknown_operation'
 
 
-def collect_rows_for_events(derived_data: dict, data_source: str, stand_id: str, schedulenum: str) -> list[str]:
+def collect_rows_for_events(derived_data: dict, data_source: str) -> list[str]:
     """Create rows for events in a single schedule"""
     retval = []
     timber_events = derived_data.get('report_state')
@@ -31,21 +31,13 @@ def collect_rows_for_events(derived_data: dict, data_source: str, stand_id: str,
                 retval.append(timber_row)
             elif data_source == "trees":
                 if event['event_type'] == 'Event':
-                    None
-                else:
-                    retval.append(f"{stand_id} {schedulenum} {str(event['year'])}")
-                    tree_rows = map(lambda row: " ".join(map(lambda item: str(round(item, 2)), row)), standing_tree_data.get(year, [[]]))
-                    #tree_rows = str(event['year']) + " ".join(tree_rows)
+                    retval.append(header)
+                    tree_rows = map(lambda row: " ".join(map(lambda item: str(round(item, 2)), row)), felled_tree_data.get(year, [[]]))
                     retval.extend(tree_rows)
-#            elif data_source == "trees":
-#                if event['event_type'] == 'Event':
-#                    retval.append(header)
-#                    tree_rows = map(lambda row: " ".join(map(lambda item: str(round(item, 2)), row)), felled_tree_data.get(year, [[]]))
-#                    retval.extend(tree_rows)
-#                else:
-#                    tree_rows = map(lambda row: " ".join(map(lambda item: str(round(item, 2)), row)), standing_tree_data.get(year, [[]]))
-#                    retval.append(header)
-#                    retval.extend(tree_rows)
+                else:
+                    tree_rows = map(lambda row: " ".join(map(lambda item: str(round(item, 2)), row)), standing_tree_data.get(year, [[]]))
+                    retval.append(header)
+                    retval.extend(tree_rows)
     return retval
 
 
@@ -91,14 +83,12 @@ def prepare_schedules_file_content(data: SimResults, data_source: str) -> list[s
     """
     output_rows = []
     for stand_id, payload in data.items():
-        header = str(stand_id) 
-        #output_rows.append(f"Stand {stand_id} Area {payload[0].computational_unit.area}")
+        output_rows.append(f"Stand {stand_id} Area {payload[0].computational_unit.area}")
         for schedule_number, schedule_derived_data in enumerate(map(lambda x: x.collected_data, payload)):
-          prepared = collect_rows_for_events(schedule_derived_data, data_source, str(stand_id), str(schedule_number))
-#            output_rows.append(f"{stand_id} {schedule_number} {year}") # Schedule repl by {stand_id}
-#            output_rows.append(f"{stand_id} {schedule_number} {trees}".join(str(prepared[0])))
-          output_rows.extend(prepared)
-          output_rows.append("")
+            output_rows.append(f"Schedule {schedule_number}")
+            prepared = collect_rows_for_events(schedule_derived_data, data_source)
+            output_rows.extend(prepared)
+            output_rows.append("")
         output_rows.append("")
     return output_rows
 

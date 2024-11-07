@@ -2,6 +2,7 @@ import unittest
 
 from lukefi.metsi.data.model import ForestStand, ReferenceTree, TreeStratum
 from lukefi.metsi.data.enums import internal
+from tests.data.test_util import vmi13_builder
 
 
 class TestForestDataModel(unittest.TestCase):
@@ -143,9 +144,9 @@ class TestForestDataModel(unittest.TestCase):
 
     def test_set_area_with_weight(self):
         fixture = ForestStand()
-        fixture.set_area(1.0)
+        fixture.set_area(1.0, 2.0)
         self.assertEqual(1.0, fixture.area)
-        self.assertEqual(1.0, fixture.area_weight)
+        self.assertEqual(2.0, fixture.area_weight)
 
     def test_set_geo_location(self):
         fixture = ForestStand()
@@ -166,9 +167,9 @@ class TestForestDataModel(unittest.TestCase):
 
     def test_convert_csv_stand_row_with_missing_altitude(self):
         row = "stand;12345;1;2018;436.0;436.0;6834156.23;429291.91;None;EPSG:3067;1019.0;" \
-              "4;1;2;" \
-              "3;0;3;8;True;1984;None;2018;False;None;0;None;None;" \
-              "None;None;10;1;None;12;1;0;False;1.0;1.0;1;10;51"
+              "OwnerCategory.METSAHALLITUS;LandUseCategory.FOREST;SoilPeatlandCategory.SPRUCE_MIRE;" \
+              "SiteType.DAMP_SITE;0;3;DrainageCategory.TRANSFORMING_MIRE;True;1984;None;2018;False;None;0;None;None;" \
+              "None;None;10;1;None;12;1;0;False;1.0;1.0;1;10"
         row = row.split(';')
         stand = ForestStand.from_csv_row(row)
 

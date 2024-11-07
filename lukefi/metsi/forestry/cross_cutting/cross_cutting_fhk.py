@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 from collections.abc import Callable, Iterable, Sequence
 from lukefi.metsi.data.model import TreeSpecies
+import fhk
 
 CrossCutFn = Callable[..., tuple[Sequence[int], Sequence[float], Sequence[float]]]
 

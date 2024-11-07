@@ -205,6 +205,14 @@ def stand_location_converter(target):
     return target
 
 
+def stand_area_converter(target):
+    """ in-place conversion to for variables area and area weight when stands is auxiliary """
+    if target.is_auxiliary():
+        target.area_weight = target.area
+        target.area = 0.0
+    return target
+
+
 def mela_stratum(stratum):
     """Convert a TreeStratum so that enumerated category variables are converted to Mela value space"""
     result = copy(stratum)
@@ -223,7 +231,7 @@ def mela_stand(stand):
     """Convert a ForestStand so that enumerated category variables are converted to Mela value space"""
     result = copy(stand)
     result.geo_location = copy(stand.geo_location)
-    result.area_weight_factors = copy(stand.area_weight_factors)
+    result.stems_per_ha_scaling_factors = copy(stand.stems_per_ha_scaling_factors)
     result = apply_mappers(result, *default_mela_stand_mappers)
     result.reference_trees = list(map(mela_tree, result.reference_trees))
     for tree in result.reference_trees:
@@ -237,6 +245,7 @@ def mela_stand(stand):
 default_mela_tree_mappers = [species_mapper]
 default_mela_stratum_mappers = [species_mapper]
 default_mela_stand_mappers = [stand_location_converter,
+                              stand_area_converter,
                               owner_mapper, 
                               land_use_mapper, 
                               site_type_mapper, 

@@ -5,12 +5,14 @@ from lukefi.metsi.domain.data_collection.net_present_value import calculate_npv
 from lukefi.metsi.domain.data_collection.marshalling import report_collectives, report_state, collect_properties, \
     collect_standing_tree_properties, collect_felled_tree_properties, report_period
 from lukefi.metsi.domain.natural_processes.grow_acta import grow_acta
+from lukefi.metsi.domain.natural_processes.grow_continuous import grow_continuous
 from lukefi.metsi.domain.forestry_operations.thinning import first_thinning, thinning_from_above, thinning_from_below, report_overall_removal, \
     even_thinning
 from lukefi.metsi.domain.forestry_operations.clearcut import clearcutting
 from lukefi.metsi.domain.forestry_operations.planting import planting
 
 operation_lookup = {
+    'grow_continuous': grow_continuous,
     'grow_acta': grow_acta,
     'thinning_from_below': thinning_from_below,
     'thinning_from_above': thinning_from_above,
@@ -39,5 +41,6 @@ def try_register(mod: str, func: str):
         pass
 
 
-# only register grow_motti when pymotti is installed
+# only register grow_motti or grow_fhk when pymotti is installed
 try_register("forestry.natural_processes.grow_motti", "grow_motti")
+try_register("forestry.natural_processes.grow_fhk", "grow_fhk")

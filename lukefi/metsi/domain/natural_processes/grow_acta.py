@@ -16,7 +16,7 @@ def grow_acta(input: tuple[ForestStand, None], **operation_parameters) -> tuple[
     stand, _ = input
     if len(stand.reference_trees) == 0:
         return input
-    diameters, heights = grow_diameter_and_height(stand.reference_trees, step)
+    diameters, heights = grow_diameter_and_height(stand, step)
     stems = list(map(lambda x: x.stems_per_ha, stand.reference_trees))
     update_stand_growth(stand, diameters, heights, stems, step)
     return stand, None

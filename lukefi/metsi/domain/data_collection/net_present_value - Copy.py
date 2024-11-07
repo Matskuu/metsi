@@ -53,10 +53,10 @@ def _calculate_npv_for_rate(
     npv = 0.0
 
     # 1. add revenues from harvesting. This excludes results from cross_cut_standing_trees.
-    x: CrossCutResult
-    for x in filter(lambda x: x.source == "harvested", cc_results):
-        discounted_revenue = x.get_real_value() / _discount_factor(r, x.time_point, initial_time_point)
-        npv += discounted_revenue
+#    x: CrossCutResult
+#    for x in filter(lambda x: x.source == "harvested", cc_results):
+#        discounted_revenue = x.get_real_value() / _discount_factor(r, x.time_point, initial_time_point)
+#        npv += discounted_revenue
 
     # 2. add discounted value of standing tree stock at the current time point.
     standing_cc_results = list(filter(lambda x: x.source == "standing" and x.time_point == current_time_point, cc_results))
@@ -69,14 +69,14 @@ def _calculate_npv_for_rate(
             npv += discounted_revenue
 
     # 3. subtract costs
-    z: PriceableOperationInfo
-    for z in renewal_results:
-        unit_cost = renewal_costs[z.operation]
-        discounted_cost = z.get_real_cost(unit_cost) / _discount_factor(r, z.time_point, initial_time_point)
-        npv -= discounted_cost
+#    z: PriceableOperationInfo
+#    for z in renewal_results:
+#        unit_cost = renewal_costs[z.operation]
+#        discounted_cost = z.get_real_cost(unit_cost) / _discount_factor(r, z.time_point, initial_time_point)
+#        npv -= discounted_cost
 
     # 4. add discounted bare land value
-    npv += _get_bare_land_value(land_values, stand.soil_peatland_category, stand.site_type_category, int_r) * stand.area # or just in the post-script for csv?
+    npv += _get_bare_land_value(land_values, stand.soil_peatland_category, stand.site_type_category, int_r)
     return npv
 
 

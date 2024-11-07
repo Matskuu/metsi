@@ -16,7 +16,7 @@ class MainTest(unittest.TestCase):
         sys.argv = [
             'metsi',
             '--state-format',
-            'xml',
+            'forest_centre',
             '--preprocessing-output-container',
             'csv',
             '-r',

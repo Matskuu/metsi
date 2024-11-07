@@ -1,12 +1,10 @@
 import geopandas
 import datetime
-import math
 
 from shapely.geometry import Polygon, Point
 from xml.etree.ElementTree import Element
 from types import SimpleNamespace
 from lukefi.metsi.data.formats import util
-from lukefi.metsi.data.model import TreeStratum
 
 NS = {
         "schema_location": "http://standardit.tapio.fi/schemas/forestData ForestData.xsd",
@@ -32,12 +30,13 @@ def generate_stand_identifier(xml_stand: Element) -> str:
     stand_identifier = xml_stand.attrib.get('id')
     stand_number = xml_stand.findtext('./st:StandBasicData/st:StandNumber', None, NS)
     stand_number_extension = xml_stand.findtext('./st:StandBasicData/st:StandNumberExtension', None, NS)
-    if stand_number and stand_number_extension:
-        return f"{stand_number}.{stand_number_extension}"
-    elif stand_number:
-        return stand_number
-    elif stand_identifier:
-        return stand_identifier
+    # the following commented out lines are so that standid is the identifier in the outputs
+#    if stand_number and stand_number_extension:
+#        return f"{stand_number}.{stand_number_extension}"
+#    elif stand_number:
+#        return stand_number
+#    elif stand_identifier:
+    return stand_identifier
 
 
 def parse_stand_basic_data(xml_stand: Element) -> SimpleNamespace:
@@ -45,7 +44,6 @@ def parse_stand_basic_data(xml_stand: Element) -> SimpleNamespace:
     sns.id = generate_stand_identifier(xml_stand)
     sns.CompleteState = xml_stand.findtext('./st:StandBasicData/st:CompleteState', None, NS)
     sns.StandBasicDataDate = xml_stand.findtext('./st:StandBasicData/st:StandBasicDataDate', None, NS)
-    # NOTE: AreaDecrese mukaan: area - areadecrese
     sns.Area = xml_stand.findtext('./st:StandBasicData/st:Area', None, NS)
     sns.SubGroup = xml_stand.findtext('./st:StandBasicData/st:SubGroup', None, NS)
     sns.FertilityClass = xml_stand.findtext('./st:StandBasicData/st:FertilityClass', None, NS)
@@ -140,43 +138,25 @@ def parse_drainage_category(source: str) -> int or None:
         return 5
     else:
         return util.parse_int(source)
-    
-def parse_development_class(source: str) -> int:
-    """ TODO: Waiting for future implementation.
-
-    At the moment (22.9.2023) development class variable is extracted
-    from .gpkg (not in .xml) format but not used by any model in simulation.
-    For that reason constant zero is returned.
-
-    :returns: zero """
-    return 0
 
 
 def parse_forest_management_category(source: str) -> int or float or None:
     try:
         if source in ('1'):
-            # No hold-over (ylispuu)
             return 2.1
         elif source in ('2', '3'):
-            # No first thinnings or other thinnings
             return 2.2
         elif source in ('4'):
-            # No intermediate felling (kasvatushakkuu)
             return 2.3
         elif source in ('6', '7'):
-            # No seeding felling or shelterwood felling (suojuspuuhakkuu)
             return 2.4
         elif source in ('5'):
-            # No clear cut
             return 2.5
         elif source in ('8'):
-            # No regeneration felling (uudistushakkuu)
             return 2.6
         elif source in ('9'):
-            # No fellings (ei hakkuita)
             return 7
         else:
-            # No restrictions
             return 1
     except:
         return None
@@ -184,6 +164,15 @@ def parse_forest_management_category(source: str) -> int or float or None:
 
 def point_series(value: str) -> list[tuple[float, float]]:
     """ Converts a gml string presentation to a list of (x, y) points"""
+
+    """# For Ilomantsi data for utopia (some xml data is in different format)
+
+    series = []
+    points = value.split(' ')
+    points = [points[i:i+2] for i in range(0, len(points), 2)]
+    for point in points:
+        series.append((float(point[0]), float(point[1])))"""
+
     series = []
     for xy_point in value.split(' '):
         point = xy_point.split(',')
@@ -226,19 +215,9 @@ def parse_coordinates(estand: Element) -> tuple[float, float, str]:
         sns.geometry_type = 'polygon'
         sns.egeometry = epolygon
         sns.coord_xpath = './gml:exterior/gml:LinearRing/gml:coordinates'
+        # The following line is needed for Ilomantsi data for utopia (some xml data is in different format)
+        #sns.coord_xpath = './gml:exterior/gml:LinearRing/gml:posList'
     else:
         return (None, None, None)
     (longitude, latitude, crs) = parse_centroid(sns)
     return (float(latitude), float(longitude), crs)
-
-
-def calculate_stand_basal_area(strata: list[TreeStratum]) -> float:
-    def f(s):
-        try:
-            return round(math.pi / 4 * math.pow(s.mean_diameter/100, 2) * s.stems_per_ha, 2)
-        except TypeError:
-            return 0.0 
-    basal_areas = [ stratum.basal_area if stratum.basal_area is not None else f(stratum) for stratum in strata ]
-    for bs, s in zip(basal_areas, strata):
-        s.basal_area = bs
-    return sum(basal_areas) 

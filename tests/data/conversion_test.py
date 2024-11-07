@@ -6,13 +6,13 @@ from tests.data import test_util
 class TestConversion(test_util.ConverterTestSuite):
     def test_determine_area_factors(self):
         assertions = [
-            (['0', '0'], (0.0, 0.0)),
-            (['0', '1'], (0.0, 0.1)),
-            (['1', '0'], (0.1, 0.0)),
-            (['2', None], (0.2, 0.0)),
-            ([None, '4'], (0.0, 0.4)),
-            ([None, None], (0.0, 0.0)),
+            (['0', '0'], (1.0, 1.0)),
+            (['0', '1'], (1.0, 0.1)),
+            (['1', '0'], (0.1, 1.0)),
             (['2', '4'], (0.2, 0.4)),
+            (['2', None], (0.2, 1.0)),
+            ([None, '4'], (1.0, 0.4)),
+            ([None, None], (1.0, 1.0)),
         ]
 
         self.run_with_test_assertions(assertions, vmi_util.determine_area_factors)
@@ -134,16 +134,16 @@ class TestConversion(test_util.ConverterTestSuite):
         self.run_with_test_assertions(assertions, vmi_util.determine_vmi12_area_ha)
 
     def test_determine_vmi13_area_ha(self):
-        self.assertRaises(IndexError, vmi_util.determine_vmi13_area_ha, -1, -1, -1)
-        self.assertRaises(Exception, vmi_util.determine_vmi13_area_ha, 0, 0, 0)
-        self.assertRaises(Exception, vmi_util.determine_vmi13_area_ha, 3, 0, 0)
-        self.assertRaises(Exception, vmi_util.determine_vmi13_area_ha, 5, 2, 1)
-        self.assertRaises(Exception, vmi_util.determine_vmi13_area_ha, 5, 2, None)
+        self.assertRaises(IndexError, vmi_util.determine_vmi13_area_ha, -1)
+        self.assertRaises(IndexError, vmi_util.determine_vmi13_area_ha, 6)
 
         assertions = [
-            ([1, 2, 0], 345.73918),
-            ([2, 2, 0], 338.0386443),
-            ([4, 2, 0], 342.975010960105),
+            ([0], vmi13_county_areas[0]),
+            ([1], vmi13_county_areas[1]),
+            ([2], vmi13_county_areas[2]),
+            ([3], vmi13_county_areas[3]),
+            ([4], vmi13_county_areas[4]),
+            ([5], vmi13_county_areas[5])
         ]
         self.run_with_test_assertions(assertions, vmi_util.determine_vmi13_area_ha)
 
@@ -295,12 +295,6 @@ class TestConversion(test_util.ConverterTestSuite):
         self.assertEqual(result.year, 2019)
         self.assertEqual(result.month, 2)
         self.assertEqual(result.day, 1)
-
-    def test_vmi12_dominant_storey_age(self):
-        assertions = [
-            (("10.0", "2.0"), (12.0))
-        ]
-        self.run_with_test_assertions(assertions, vmi_util.determine_vmi12_dominant_storey_age)
 
     def test_parse_forestry_centre(self):
         assertions = [

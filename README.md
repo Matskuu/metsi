@@ -34,6 +34,41 @@ For developer usage, application entry point is the file `lukefi/metsi/app/metsi
 
 To obtain the latest changes use the command `git pull`.
 
+### Notes about proxy configuration for Natural Resources Institute Finland users
+
+Both git and pip use a separate configuration for WWW proxy. Proxy is manadatory for Luke internal network. Software
+Center presets this for pip, but not for git. Depending on whether you are using Luke internal network (Ethernet, Reitti
+or FortiClient VPN) or another network, you need to adjust proxy configuration manually to be able to run
+internet-facing commands with these tools.
+
+In the following subsections, `~` denotes your home directory. This is your home directory in windows format is a path
+such as `C:\Users\12345678`. You can always re-enter your home directory by running the command `cd`, or
+explicitly `cd ~`.
+
+#### pip
+
+The pip configuration file can be found in `~/AppData/Roaming/pip/pip.ini`. It may be overridden with `~/pip/pip.ini`.
+To enable the proxy usage, the file should have a proxy configuration line in the global section such as
+
+```
+[global]
+proxy = http://suoja-proxy.vyv.fi:8080
+```
+
+To disable the proxy, insert a `#` character in front of the proxy line to comment it out.
+
+#### git
+
+The git configuration file can be found in `~/.gitconfig`. By default this file does not exist. To enable the proxy
+usage, the file should have a proxy configuration line in the http section such as
+
+```
+[http]
+proxy = http://suoja-proxy.vyv.fi:8080
+```
+
+To disable the proxy, insert a `#` character in front of the proxy line to comment it out.
+
 ### R (optional)
 
 To be able to use forestry operations depending on R modules
@@ -51,12 +86,20 @@ pip install .[rpy2]
 Access to this module is restricted to Natural Resources Institute Finland by special admission. Installing this will
 not work without access to the related GitHub repositories.
 
+There's two ways to use Motti growth models: the pure Python [`pymotti`](https://github.com/menu-hanke/pymotti)
+implementation, and the [fhk](https://github.com/menu-hanke/fhk)-based Lua implementation. They *should* give the same
+results for big tree natural processes. The difference is that the fhk implementation is much faster but also less
+complete for now.
+
+To use the Python or FHK version of Motti, install `pymotti`:
+
 ```
 pip install -r requirements-motti.txt
 ```
 
 The corresponding growth operation is `grow_motti`.
 
+You can also use the `grow_fhk` operation with `package: pymotti_graph`.
 
 **NOTE**: For either model, the input data must contain precomputed weather data (temperature sums, sea/lake indices).
 In practice this means that you must enable the `compute_location_metadata` preprocessing operation **even if you're
@@ -100,7 +143,6 @@ of associated reference trees and tree strata. The file can be of following type
 1. a .json file or .pickle file containing Forest Data Model type source data.
 2. a .dat file containing VMI12 or VMI13 type source data
 3. a .xml file containing Forest Centre type source data
-4. a .gpkg file containing Forest Centre type source data
 
 Input for postprocess and export phases is a directory produced by the simulate phase.
 
@@ -153,25 +195,19 @@ configured.
 To run full pipeline from a VMI12 data source file using direct reference trees from the input data, run:
 
 ```
-python -m lukefi.metsi.app.metsi --state-format vmi12 --measured-trees -r preprocess,simulate,postprocess,export vmi12.dat sim_outdir
+python -m lukefi.metsi.app.metsi --state-format vmi12 --reference-trees -r preprocess,simulate,postprocess,export vmi12.dat sim_outdir
 ```
 
 To run full pipeline from a VMI13 data source file using direct reference trees from the input data, run:
 
 ```
-python -m lukefi.metsi.app.metsi --state-format vmi13 --measured-trees -r preprocess,simulate,postprocess,export vmi13.dat sim_outdir
+python -m lukefi.metsi.app.metsi --state-format vmi13 --reference-trees -r preprocess,simulate,postprocess,export vmi13.dat sim_outdir
 ```
 
-To run full pipeline from a Forest Centre .xml source file, run:
+To run full pipeline from a Forest Centre source file, run:
 
 ```
-python -m lukefi.metsi.app.metsi --state-format xml -r preprocess,simulate,postprocess,export forest_centre.xml sim_outdir
-```
-
-To run full pipeline from a Forest Centre .gpkg source file, run:
-
-```
-python -m lukefi.metsi.app.metsi --state-format gpkg -r preprocess,simulate,postprocess,export geopackage.gpkg sim_outdir
+python -m lukefi.metsi.app.metsi --state-format forest_centre --reference-trees -r preprocess,simulate,postprocess,export forest_centre.xml sim_outdir
 ```
 
 To run full pipeline from a FDM formatted data from csv (or json or pickle with replacement below), run:
@@ -234,6 +270,7 @@ See table below for a quick reference of forestry operations usable in control.y
 | do_nothing                                            | This operation is no-op utility operation to simulate rest                                       |                             | native         |
 | grow_acta                                             | A simple ReferenceTree diameter and height growth operation                                      | Acta Forestalia Fennica 163 | metsi-forestry |
 | grow_motti                                            | A ReferenceTree growth operation with death and birth models. Requires `pymotti`.                | Luke Motti group            | pymotti        |
+| grow_fhk                                              | grow_motti as a Lua + FHK graph implementation. Requires `pymotti`.                              |                             | pymotti        |
 | first_thinning                                        | An operation reducing the stem count of ReferenceTrees as a first thinning for a forest          | Reijo Mykkänen              | metsi-forestry |
 | thinning_from_below                                   | An operation reducing the stem count of ReferenceTrees weighing small trees before large trees   | Reijo Mykkänen              | metsi-forestry |
 | thinning_from_above                                   | An operation reducing the stem count of ReferenceTrees weighing large trees before small trees   | Reijo Mykkänen              | metsi-forestry |
@@ -553,7 +590,7 @@ year when this operation is called.
 | parameter name     | type       | location in control.yaml | notes                                                  |
 |--------------------|------------|--------------------------|--------------------------------------------------------|
 | timber_price_table | file (csv) | operation_file_params    | timber grades must be given as integers                |
-| implementation     | str        | operation_params         | py and lupa (lua) implementations available |
+| implementation     | str        | operation_params         | py, fhk (lua) and lupa (lua) implementations available |
 
 #### **output**
 
@@ -582,7 +619,7 @@ trees if they were cross cut. Therefore, this operation is different from [clear
 | parameter name     | type       | location in control.yaml | notes                                                  |
 |--------------------|------------|--------------------------|--------------------------------------------------------|
 | timber_price_table | file (csv) | operation_file_params    | timber grades must be given as integers                |
-| implementation     | str        | operation_params         | py and lupa (lua) implementations available |
+| implementation     | str        | operation_params         | py, fhk (lua) and lupa (lua) implementations available |
 
 #### **output**
 
@@ -678,7 +715,6 @@ A run is declared in the YAML file `control.yaml`.
         1. `fdm` is the standard Forest Data Model.
         2. `vmi12` and `vmi13` denote the VMI data format and container.
         3. `forest_centre` denotes the Forest Centre XML data format and container.
-        4. `geo_package` denotes the Forest Centre GPKG data format and container.
     2. `state_input_container` is the file type for `fdm` data format. This may be `csv`, `pickle` or `json`.
     3. `preprocessing_output_container` is the file type for outputting the `fdm` formatted state of computational units
        after preprocessing operations. This may be `csv`, `pickle` or `json` or commented out for no output.
@@ -687,8 +723,8 @@ A run is declared in the YAML file `control.yaml`.
     5. `derived_data_output_container` is the file type for outputting derived data during and after the simulation.
        This may be `pickle` or `json` or commented out for no output.
     6. `strategy` is the simulation event tree formation strategy. Can be `partial` or `full`.
-    7. `measured_trees` instructs the `vmi12` and `vmi13` data converters to choose reference trees from the source. `True` or `False`.
-    8. `strata` instructs the `vmi12` and `vmi13` data converters strata from the source. `True` or `False`.
+    7. `reference_trees` instructs the `vmi12` and `vmi13` data converters to choose either reference trees or tree
+       strata from the source. `True` or `False`.
     8. `strata_origin` instructs the `forest_centre` converter to choose only strata with certain origin to the
        result. `1`, `2` or `3`.
     9. `multiprocessing` instructs the application to parallelizes the computation to available CPU cores in the

@@ -2,18 +2,6 @@ from enum import EnumMeta
 from typing import Optional, Any
 
 
-def parse_type(source, *ts: type) -> type:
-    ''' Generic version of  parse_int and parse_float utilities'''
-    ts = list(ts)
-    try:
-        t0 = ts.pop(0)
-        r = t0(source)
-        for t in ts:
-            r = t(r)
-        return r
-    except (ValueError, TypeError, IndexError):
-        return None
-
 def parse_int(source: str) -> Optional[int]:
     try:
         return int(source)
@@ -46,10 +34,10 @@ def convert_str_to_type(_class: type, value: str, property_name: str):
     if property_type in (str, Optional[str]):
         return str(value)
     if isinstance(property_type.__args__[0], EnumMeta):
-        return property_type.__args__[0](int(value))
+        return property_type.__args__[0][value.split('.')[1]]
 
     if type(value) == tuple:
-        #stand.area_weight_factors
+        #stand.stems_per_ha_scaling_factors
         if property_type == tuple[float, float]:
             return tuple(parse_float(v) for v in value)
         #stand.geo_location

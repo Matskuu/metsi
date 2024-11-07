@@ -196,7 +196,7 @@ class TreeStratum():
 
         result = cls()
         result.identifier = conv(row[1], "identifier")
-        result.species = TreeSpecies(int(row[2]))
+        result.species = TreeSpecies[row[2].split(".")[1]]
         result.origin = conv(row[3], "origin")
         result.stems_per_ha = conv(row[4], "stems_per_ha")
         result.mean_diameter = conv(row[5], "mean_diameter")
@@ -213,7 +213,7 @@ class TreeStratum():
         result.management_category = conv(row[18], "management_category")
         result.sapling_stems_per_ha = conv(row[19], "sapling_stems_per_ha")
         result.sapling_stratum = conv(row[20], "sapling_stratum")
-        result.storey = Storey(int(row[21])) if row[21] != "None" else None
+        result.storey = Storey[row[21].split(".")[1]] if row[21] != "None" else None
         return result
 
 @dataclass
@@ -228,7 +228,7 @@ class ReferenceTree():
     identifier: Optional[str] = None
 
     stems_per_ha: Optional[float] = None  # RSD record 1
-    species: Optional[TreeSpecies] = None  # RSD record 2, 1-8
+    species: Optional[Enum] = None  # RSD record 2, 1-8
     # RSD record 3, diameter at 1.3 m height
     breast_height_diameter: Optional[float] = None
     height: Optional[float] = None  # RSD record 4, model height in meters
@@ -259,9 +259,6 @@ class ReferenceTree():
     storey: Optional[Storey] = None
     tree_type: Optional[str] = None
 
-    # VMI tuhon ilmiasu
-    tuhon_ilmiasu: Optional[str] = None
-    
     def __eq__(self, other: "ReferenceTree"):
         return id(self) == id(other)
 
@@ -320,7 +317,6 @@ class ReferenceTree():
             self.stems_per_ha,
             self.breast_height_diameter,
             self.height,
-            self.measured_height,
             self.breast_height_age,
             self.biological_age,
             self.saw_log_volume_reduction_factor,
@@ -335,8 +331,7 @@ class ReferenceTree():
             self.tree_category,
             self.sapling,
             self.storey,
-            self.tree_type,
-            self.tuhon_ilmiasu
+            self.tree_type
         ]
 
     @classmethod
@@ -345,30 +340,28 @@ class ReferenceTree():
             return convert_str_to_type(cls, value, property_name)
         result = cls()
         result.identifier = conv(row[1], "identifier")
-        result.species = TreeSpecies(int(row[2]))
+        result.species = TreeSpecies[row[2].split(".")[1]]
         result.origin = conv(row[3], "origin")
         result.stems_per_ha = conv(row[4], "stems_per_ha")
         result.breast_height_diameter = conv(row[5], "breast_height_diameter")
         result.height = conv(row[6], "height")
-        result.measured_height = conv(row[7], "measured_height")
-        result.breast_height_age = conv(row[8], "breast_height_age")
-        result.biological_age = conv(row[9], "biological_age")
-        result.saw_log_volume_reduction_factor = conv(row[10], "saw_log_volume_reduction_factor")
-        result.pruning_year = conv(row[11], "pruning_year")
-        result.age_when_10cm_diameter_at_breast_height = conv(row[12], "age_when_10cm_diameter_at_breast_height")
-        result.tree_number = conv(row[13], "tree_number")
+        result.breast_height_age = conv(row[7], "breast_height_age")
+        result.biological_age = conv(row[8], "biological_age")
+        result.saw_log_volume_reduction_factor = conv(row[9], "saw_log_volume_reduction_factor")
+        result.pruning_year = conv(row[10], "pruning_year")
+        result.age_when_10cm_diameter_at_breast_height = conv(row[11], "age_when_10cm_diameter_at_breast_height")
+        result.tree_number = conv(row[12], "tree_number")
         result.stand_origin_relative_position = conv((
+            row[13],
             row[14],
             row[15],
-            row[16],
         ), "stand_origin_relative_position")
-        result.lowest_living_branch_height = conv(row[17], "lowest_living_branch_height")
-        result.management_category = conv(row[18], "management_category")
-        result.tree_category = conv(row[19], "tree_category")
-        result.sapling = conv(row[20], "sapling")
-        result.storey = Storey(int(row[21])) if row[21] != 'None' else None
-        result.tree_type = conv(row[22], "tree_type")
-        result.tuhon_ilmiasu = conv(row[23], "tuhon_ilmiasu")
+        result.lowest_living_branch_height = conv(row[16], "lowest_living_branch_height")
+        result.management_category = conv(row[17], "management_category")
+        result.tree_category = conv(row[18], "tree_category")
+        result.sapling = conv(row[19], "sapling")
+        result.storey = Storey[row[20].split(".")[1]] if row[20] != 'None' else None
+        result.tree_type = conv(row[21], "tree_type")
         return result
 
 
@@ -451,12 +444,10 @@ class ForestStand():
     method_of_last_cutting: Optional[int] = None  # RSD record 31, 0-6
     # RSD record 32, code from Statistics Finland
     municipality_id: Optional[int] = None
-    # RSD record 33 unused
-    # RSD record 34
-    dominant_storey_age: Optional[float] = None
+    # RSD record 33 and 34 unused
 
     # stand specific factors for scaling estimated ReferenceTree count per hectare
-    area_weight_factors: tuple[float, float] = (1.0, 1.0)
+    stems_per_ha_scaling_factors: tuple[float, float] = (1.0, 1.0)
 
     fra_category: Optional[str] = None  # VMI fra category
     # VMI land use category detail
@@ -494,12 +485,9 @@ class ForestStand():
             stand_id if management_unit_id is None else management_unit_id
         )
 
-    def set_area(self, area_ha: float):
-        if self.is_auxiliary():
-            self.area = 0.0
-        else:
-            self.area = area_ha
-        self.area_weight = area_ha
+    def set_area(self, area_ha: float, area_weight: Optional[float] = None):
+        self.area = area_ha
+        self.area_weight = area_ha if area_weight is None else area_weight
 
     def set_geo_location(
         self, lat: float, lon: float, height: float, system: str = "EPSG:3067"
@@ -518,7 +506,7 @@ class ForestStand():
         return self.auxiliary_stand
 
     def is_forest_land(self):
-        return self.land_use_category.value < 4
+        return self.land_use_category.value < 5
 
     def is_other_excluded_forest(self):
         return (
@@ -574,11 +562,10 @@ class ForestStand():
             self.fra_category,
             self.land_use_category_detail,
             self.auxiliary_stand,
-            self.area_weight_factors[0],
-            self.area_weight_factors[1],
+            self.stems_per_ha_scaling_factors[0],
+            self.stems_per_ha_scaling_factors[1],
             self.stand_id,
-            self.basal_area,
-            self.dominant_storey_age
+            self.basal_area
         ]
 
     def from_row(self, row):
@@ -622,10 +609,9 @@ class ForestStand():
         self.fra_category = conv(row[31], "fra_category")
         self.land_use_category_detail = conv(row[32], "land_use_category_detail")
         self.auxiliary_stand = conv(row[33], "auxiliary_stand")
-        self.area_weight_factors = conv((row[34], row[35]), "area_weight_factors")
+        self.stems_per_ha_scaling_factors = conv((row[34], row[35]), "stems_per_ha_scaling_factors")
         self.stand_id = conv(row[36], "stand_id")
         self.basal_area = conv(row[37], "basal_area")
-        self.dominant_storey_age = conv(row[38], "dominant_storey_age")
 
 
     @classmethod
@@ -640,9 +626,6 @@ class ForestStand():
         melaed = mela_stand(self)
         forestry_centre_id = (
             -1 if melaed.forestry_centre_id is None else melaed.forestry_centre_id
-        )
-        municipality_id = (
-            -1 if melaed.municipality_id is None else melaed.municipality_id
         )
         return [
             melaed.management_unit_id,
@@ -676,9 +659,9 @@ class ForestStand():
             forestry_centre_id,
             melaed.forest_management_category,
             melaed.method_of_last_cutting,
-            municipality_id,
+            melaed.municipality_id,
             None,
-            0 if melaed.dominant_storey_age is None else melaed.dominant_storey_age,
+            None,
         ]
 
 

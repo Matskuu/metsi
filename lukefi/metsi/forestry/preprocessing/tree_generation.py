@@ -3,7 +3,7 @@ from typing import Optional
 from lukefi.metsi.data.model import ReferenceTree, TreeStratum
 from enum import Enum
 from lukefi.metsi.forestry.preprocessing import distributions, pre_util
-from lukefi.metsi.forestry.preprocessing.naslund import naslund_height, naslund_correction
+from lukefi.metsi.forestry.preprocessing.naslund import naslund_height
 from lukefi.metsi.forestry.preprocessing.tree_generation_lm import tree_generation_lm
 
 
@@ -53,13 +53,6 @@ def trees_from_weibull(stratum: TreeStratum, **params) -> list[ReferenceTree]:
             reference_tree.breast_height_diameter,
             stratum.species)
         reference_tree.height = 0.0 if height is None else height
-    # height correction
-    h_scalar = naslund_correction(stratum.species,
-                                  stratum.mean_diameter,
-                                  stratum.mean_height)
-    for reference_tree in result:
-        reference_tree.height = round(h_scalar*reference_tree.height, 2)
-
     return result
 
 
@@ -73,12 +66,11 @@ def trees_from_sapling_height_distribution(stratum: TreeStratum, **params) -> li
 
 def solve_tree_generation_strategy(stratum: TreeStratum, method='weibull') -> str:
     """ Solves the strategy of tree generation for given stratum """
-
     if stratum.has_height_over_130_cm():
         # big trees
         if stratum.has_diameter() and stratum.has_height() and stratum.has_basal_area() and method == 'weibull':
             return TreeStrategy.WEIBULL_DISTRIBUTION
-        elif not stratum.sapling_stratum and stratum.has_diameter() and (stratum.has_basal_area() or stratum.has_stems_per_ha()) and method == 'lm':
+        elif not stratum.sapling_stratum and stratum.has_diameter() and method == 'lm':
             return TreeStrategy.LM_TREES
         elif stratum.has_diameter() and stratum.has_height() and stratum.has_stems_per_ha():
             return TreeStrategy.HEIGHT_DISTRIBUTION
@@ -110,8 +102,10 @@ def reference_trees_from_tree_stratum(stratum: TreeStratum, **params) -> list[Re
     result = []
     if strategy == TreeStrategy.HEIGHT_DISTRIBUTION:
         result = trees_from_sapling_height_distribution(stratum, **params)
+        result = pre_util.scale_stems_per_ha(result, stratum.stand.stems_per_ha_scaling_factors)
     elif strategy == TreeStrategy.WEIBULL_DISTRIBUTION:
         result = trees_from_weibull(stratum, **params)
+        result = pre_util.scale_stems_per_ha(result, stratum.stand.stems_per_ha_scaling_factors)
     elif strategy == TreeStrategy.LM_TREES:
         result = tree_generation_lm(stratum, stratum.stand.degree_days, stratum.stand.basal_area, **params)
     elif strategy == TreeStrategy.SKIP:
@@ -119,8 +113,5 @@ def reference_trees_from_tree_stratum(stratum: TreeStratum, **params) -> list[Re
         return []
     else:
         raise UserWarning("Unable to generate reference trees from stratum {}".format(stratum.identifier))
-    
-    result = [ rt for rt in result if round(rt.stems_per_ha,2) > 0.0 ]
-    
     return finalize_trees(result, stratum)
 

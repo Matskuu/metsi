@@ -23,7 +23,7 @@ class MetsiConfiguration(SimpleNamespace):
     derived_data_output_container = None
     formation_strategy = "partial"
     evaluation_strategy = "depth"
-    measured_trees = False
+    reference_trees = False
     strata = True
     strata_origin = "1"
 
@@ -122,9 +122,9 @@ def parse_cli_arguments(args: list[str]):
                         type=str,
                         help='Simulation event tree evaluation strategy: \'depth\' (default), \'chains\'')
     parser.add_argument('--state-format',
-                        choices=['fdm', 'vmi12', 'vmi13', 'xml', 'gpkg'],
+                        choices=['fdm', 'vmi12', 'vmi13', 'forest_centre'],
                         type=str,
-                        help='Data format of the state input file: fdm (default), vmi12, vmi13, xml, gpkg')
+                        help='Data format of the state input file: fdm (default), vmi12, vmi13, forest_centre')
     parser.add_argument('--state-input-container',
                         choices=['pickle', 'json', 'csv'],
                         type=str,
@@ -141,9 +141,9 @@ def parse_cli_arguments(args: list[str]):
                         choices=['pickle', 'json'],
                         type=str,
                         help='Container format of derived data result file: \'pickle\' (default), \'json\'')
-    parser.add_argument('--measured-trees',
+    parser.add_argument('--reference-trees',
                         action=argparse.BooleanOptionalAction,
-                        help="Include measured trees from VMI data source.")
+                        help="Include reference trees from VMI data source.")
     parser.add_argument('--strata',
                         action=argparse.BooleanOptionalAction,
                         help="Include strata from VMI data source.")
